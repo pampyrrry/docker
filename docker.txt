@@ -1,0 +1,125 @@
+﻿DOCKER
+Adresy http:
+
+https://get.docker.com/		→ Pobieranie Docker’a 
+https://hub.docker.com/		→ wyszukiwanie obrazów przez przeglądarkę
+
+Polecenia terminalowe
+
+sudo usermod -aG docker dan	→ polecenie aby pomijać konieczność pisania sudo
+
+docker search nazwa_obrazu	→  wyszukiwanie obrazu z terminala
+
+docker image ls 			→ wyświetlanie listy dostępnych obrazów
+
+docker pull nazwa_obrazu 	→ pobieranie nowego obrazu na naszą maszynę
+
+docker pull nazwa obrazu:tag 	→ docker pull ubuntu:20.4 → pobieranie wybranej 					  wersji obrazu
+docker rmi nazwa_obrazu:tag (lub image_id - może wystąpić error)	→ usuwanie 												  obrazu
+docker image rm nazwa_obrazu:tag (lub image_id - może wystąpić error) → usuwanie 												obrazu
+docker inspect nazwa_obrazu:tag (lub image_id)	→ wyświetlenie szczegółowych 									  informacji o obrazach
+
+docker run nazwa_obrazu (ewentualnie :tag) → uruchamianie kontenerów 
+docker ps 				→ wyświetlanie listy uruchomionych kontenerów
+docker ps -a 			→ wyświetlanie listy wszystkich kontenerów
+docker container ls		→ = docker ps
+docker container ls –all	→ = docker ps -a uruchamianie konsoli wew. 						  kontenera
+docker run -it nazwa_obrazu:tag bash  → (= -i -t)i – interaktywny, t - terminal 
+Ctrl+P+Q 				→ wyjście z kontenera bez jego wyłączania
+docker run --name nazwa_własna nazwa:tag komenda → uruchamianie kontenera z 									    nadaną własną nazwą (docker 								    run --ubuntu_pwd ubuntu:22.04 								    pwd)
+
+docker run -e klucz=wartość  	→ uruchamianie zmiennych środowiskowych
+
+docker run -d nazwa_obrazu:tag → uruchamianie kontenera w tle
+
+docker logs container_id → wyświetlanie logów kontenera po ID (można po nazwie)
+docker container rm container_id → usuwanie kontenera po ID
+
+docker rm container_id → usuwanie kontenera po ID (można również usuwać obrazy)
+docker container prune → usuwanie wszystkich zatrzymanych kontenerów !
+docker top container_id → wyświetlanie procesów w systemie operacyjnym
+docker inspect container_id → wyświetlenie szczegółów kontenera
+docker stop container_id → zatrzymanie pracy kontenera
+docker stop -t 20 container_id → zatrzymanie pracy kontenera z czasem dla kill
+docker kill container_id → otrzymamy Exited(137)
+docker start container_id → ponowne uruchomienie kontenera (uruchamia w tle)
+docker attach → podpinanie się do procesu na podstawie którego działa kontener
+docker exec container_id polecenie → wykonywanie poleceń na kontenerze bez 						uruchamiania -it (docker exec 46763f9b0b69 ls)
+docker exec -it container_id polecenie → wykonywanie polecenia z -it
+docker stats 		→ wyświetlenie info o zużyciu pamięci kontenerów
+docker run -d -m 512M nazwa_obrazu:tag → uruchamianie kontenera w tle z ograniczoną przypisana pamięcią ram ( flaga -m wartość_ram M=MB)
+docker run -d –-memory 12M nazwa_obrazu:tag → uruchamianie kontenera w tle z 			ograniczoną przypisana pamięcią ram ( flaga -m wartość_ram 				M=MB)- inny opis/proporcje zużycia w poleceniu docker stats
+docker cp ścieżka_pliku_i_nazwa miejsce_docelowe (np.container_id lub nazwa):/miejsce_w_kontenerze → kopiowanie plików z dysku na kontener np.: 
+ 				docker cp Tekst.txt zen_tu:/ → sprawdzenie : decker exec 				zen_tu ls / (zwraca listę plików i folderów)
+docker cp container_id lub name:/miejsce_pliku_i_nazwa pliku lub folderu miejsce docelowe (jeśli aktualne to wystarczy „.”) → kopiowanie z kontenera na dysk → przykład: docker cp zen_tu:/bin .
+docker run -it -v ścieżka_podlinkowanego_katalogu:/miejsce_docelowe nazwa_obrazu:tag komenda → podlinkowanie katalogu do kontenera → przykład: 
+			docker run -it -v /home/dan/Documents:/data debian:11 bash
+docker volume ls → lista dostępnych volumenów
+docker volume create nazwa_volumenu → tworzenie własnego volumenu 
+docker inspect nazwa_volumenu → szczegóły wolumenu
+docker run -it -v nazwa_volumenu:/miejsce_na_kontenerze obraz:tag komenda ->
+  docker run -it -v vdata:/app debian:11 bash → montowanie volumenu do kontenera
+	dodanie pliku do folderu app → na dysku pojawia się dodany plik. 
+	Spr. przez inspect voulmen
+docker volume rm nazwa_volumenu → usuwanie wolumenu – !! brak potwierdzenia !! - 					    usuwanie bezpowrotne !
+docker network ls → lista sieci dockera
+//docker inspect keen_hellman | grep IPAddress → spr, adresu IP <| grep ?>//
+docker network create własna_nazwa_sieci → tworzenie własnej sieci
+docker network create --subnet 172.80.40.0/16 nazwa_sieci → tworzenie sieci z 									własnym adresem podsieci
+docker run -d --net nazwa_sieci obraz:tag → podpinanie własnej sieci do 					kontenera (np.: docker run -d --net lantest1 nginx:1.23)	
+docker network disconnect nazwa_sieci nazwa_obrazu → rozłączanie sieci
+docker run -d -p 8080:80 nazwa_obrazu_tag → przekierowanie portu localhost:8080 							   na port 80 (kontenera)
+docker network rm nazwa_sieci → usuwanie sieci
+
+docker commit nazwa_kontenera moja_nazwa:tag → tworzenie nowego własnego obrazu 								na podstawie istniejącego
+   uruchomienie z przekierowaniem na port 7000 docker run -d -p 7000:80 moj:demo
+docker tag image_ID nazwa:tag → nadanie nazwy i tagu dla <none>
+docker tag image_ID nazwa:tag (lub nowa nazwa lub nowy tag) → nadanie nazwy 			i/lub tagu → powstanie nowy obrazy z takim samym image_id
+docker history nazwa_obrazu:tag → wyświetlanie warstw obrazu
+________________________________________________________________________________
+
+Instrukcje Dockerfile 
+VisualStudiod	Terminal
+FROM – informuje na podstawie jakiego obrazu będzie budowany własny obraz np.:
+	FROM debian:11 – budowanie obrazu na podstawie obrazu Debian z tagiem 11
+	docker build -t app:from .- budowanie obrazu -t → tag app→ nazwa obrazu .→ 	miejsce tworzenia obrazu – jeśli terminal jest w tym samym folderze to 	wystarczy „.”
+WORKDIR – instrukcja WORKDIR ustawia domyślny katalog roboczy dla obrazu. Jest 		to domyślny katalog po uruchomieniu basha dla kontenera.
+ 	WORKDIR /myapp – ustawienie katalogu my app jako domyślny
+	docker build -t app:workdir . → powstanie obraz i katalogiem /myapp
+	docker run -it app:workdir bash → uruchamia kontener z debian:11 z 							     katalogiem odczytanym z WORKDIR
+ENV – zmienne środowiskowe np.: ENV publisher=Video author=Dan
+	budowanie obrazu : docker build -t app:env .
+	Spr. danych env: docker run -it app:env bash
+COPY – kopiowanie plików lub katalogów do obrazu- instrukcja COPY przyjmuje dwa 	 argumenty – nazwa pliku lub katalogu i ścieżka docelowa w obrazie. 
+	COPY skrypt.sh /myapp/
+	docker build -t app:copy .
+	docker run -it app:copy bash
+RUN – wykonanie każdego polecenia sys. Linux. 
+	Np:  RUN apt-get update && apt-get install curl -y
+ARG – definiowanie zmiennych → nazwa zmiennej = wartość
+	np.: 	ARG DEBIAN_TAG=11
+		FROM debian:${DEBIAN_TAG}
+	Zmiana tagu debiana : docker build -t app:arg --build-arg DEBIAN_TAG=10 .
+ADD – pozwala na przenoszenie plików lub katalogów do wybranej ścieżki. Posiada 		dwie dodatkowe funkcjonalności w porównaniu do COPY: 
+	1- jeżeli podamy jako pierwszy argument plik który jest archiwum 	(np. .TAR) to instrukcja ADD rozpakuje ten plik do miejsca które zostanie 	podane jako drugi argument.
+	2. Automatyczne pobieranie plików z adresów URL → podanie jako pierwszy 	argument adres do sieciowego FTP → instrukcja ADD pobierze plik do miejsca 	podane w drugim argumencie.
+CMD – ustawienie domyślnego polecenia dla naszego obrazu. Polecenie pojawi się w 	kolumnie command.
+	Przykład: CMD sh skrypt.sh.
+	Jeśli doda się polecenie za tagiem to CMD nie zostanie uruchomione tylko 	zostanie nadpisane komendą za tagiem.
+ENTRYPOINT – ustawia domyślne polecenie dla obrazu, ale nie można nadpisać – 		inaczej niż w CMD
+VOLUME– definiuje ścieżkę w obrazie do volumenu. Przyjmuje jeden argument - do 		        której zostanie podpięty volumen. Np.: VOLUME/app
+EXPOSE – powoduje wystawienie wskazanego portu na zewnątrz kontenera.
+		Przykład wystawienie portu 7000
+
+
+
+Słownik
+
+tag – to adnotacja do wybranego obrazu (wersji wybranego obrazu)- jeden obraz 	może posiadać kilka tagów. 
+
+volumen – to obiekt docker container engine służący do przechowywania plików i katalogów – abstrakcja dysku twardego dla kontenerów. Przechowuje informacje nawet kiedy kontener jest nieaktywny. 
+
+
+
+
+
